@@ -1,9 +1,21 @@
 # Build server
 FROM node:18 AS build-server
-WORKDIR /app/server
-COPY server/package*.json ./
+WORKDIR /app
+# Copy root package.json for workspaces
+COPY package*.json ./
+# Copy shared workspace
+COPY shared/package*.json ./shared/
+COPY shared/tsconfig.json ./shared/
+COPY shared/src ./shared/src
+# Copy server files
+COPY server/package*.json ./server/
+COPY server/tsconfig.json ./server/
+COPY server/src ./server/src
+COPY server/prisma ./server/prisma
+# Install all dependencies (including workspace links)
 RUN npm install
-COPY server ./
+# Build server
+WORKDIR /app/server
 RUN npm run build
 
 # Build client  
@@ -31,5 +43,5 @@ WORKDIR /app/server
 RUN npm install --production
 RUN npx prisma generate
 
-EXPOSE 3000
+EXPOSE 5000
 CMD ["node", "dist/index.js"]
