@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased scroll-smooth;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-xl bg-primary-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-primary-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 font-semibold text-slate-700 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-primary-500 dark:hover:bg-slate-700;
+  }
+  .input-field {
+    @apply block w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-card transition dark:border-slate-700 dark:bg-slate-800 dark:shadow-none;
+  }
+  .card-hover {
+    @apply hover:shadow-card-hover hover:border-primary-200 dark:hover:border-primary-800;
+  }
+}

@@ -1,0 +1,393 @@
+// Flight Reservation - Prisma Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  AGENT
+}
+
+enum TripType {
+  ONE_WAY
+  ROUND_TRIP
+  MULTI_CITY
+}
+
+enum CabinClass {
+  ECONOMY
+  PREMIUM_ECONOMY
+  BUSINESS
+  FIRST
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  CHECKED_IN
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  UPI
+  NETBANKING
+  WALLET
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          UserRole  @default(CUSTOMER)
+  emailVerified Boolean   @default(false) @map("email_verified")
+  refreshToken  String?   @map("refresh_token")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  profile         Profile?
+  bookings        Booking[]
+  savedTravelers  SavedTraveler[]
+  loyaltyPoints   LoyaltyPoints?
+  reviews         Review[]
+  notifications   UserNotification[]
+  searchHistory   SearchHistory[]
+  savedRoutes     SavedRoute[]
+  loyaltyTxns     LoyaltyTransaction[]
+
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  firstName   String   @map("first_name")
+  lastName    String   @map("last_name")
+  phone       String?
+  dateOfBirth DateTime? @map("date_of_birth")
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model SavedTraveler {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  title           String
+  firstName       String   @map("first_name")
+  lastName        String   @map("last_name")
+  dateOfBirth     DateTime @map("date_of_birth")
+  gender          String
+  passportNumber  String?  @map("passport_number")
+  passportExpiry  DateTime? @map("passport_expiry")
+  nationality     String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_travelers")
+}
+
+model Airport {
+  code     String   @id
+  name     String
+  city     String
+  country  String
+  timezone String
+
+  flightsOrigin     Flight[] @relation("Origin")
+  flightsDestination Flight[] @relation("Destination")
+
+  @@map("airports")
+}
+
+model Airline {
+  id      String  @id @default(cuid())
+  name    String
+  code    String  @unique
+  logoUrl String? @map("logo_url")
+
+  flights Flight[]
+  reviews Review[]
+
+  @@map("airlines")
+}
+
+model Aircraft {
+  id           String   @id @default(cuid())
+  model        String
+  manufacturer String
+  totalSeats   Int      @map("total_seats")
+  economySeats Int      @map("economy_seats")
+  businessSeats Int     @map("business_seats")
+  firstClassSeats Int   @default(0) @map("first_class_seats")
+
+  flights     Flight[]
+  seatLayouts SeatLayout[]
+
+  @@map("aircraft")
+}
+
+model Flight {
+  id               String   @id @default(cuid())
+  airlineId        String   @map("airline_id")
+  flightNumber     String   @map("flight_number")
+  originId         String   @map("origin_id")
+  destinationId    String   @map("destination_id")
+  aircraftId       String   @map("aircraft_id")
+  departureTime    String   // "HH:mm" local
+  arrivalTime      String   // "HH:mm" local
+  durationMinutes  Int      @map("duration_minutes")
+  daysOfOperation String   @map("days_of_operation") // "0,1,2,3,4,5,6" for Mon-Sun
+
+  airline    Airline  @relation(fields: [airlineId], references: [id], onDelete: Cascade)
+  origin     Airport  @relation("Origin", fields: [originId], references: [code])
+  destination Airport @relation("Destination", fields: [destinationId], references: [code])
+  aircraft   Aircraft @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+
+  flightInventory FlightInventory[]
+  pricingRules    PricingRule[]
+  seatLayouts     SeatLayout[]
+  bookingSegments BookingSegment[]
+
+  @@map("flights")
+}
+
+model SeatLayout {
+  id           String    @id @default(cuid())
+  flightId     String?   @map("flight_id")
+  aircraftId   String    @map("aircraft_id")
+  seatNumber   String    @map("seat_number")
+  cabinClass   CabinClass @map("cabin_class")
+  extraLegroom Boolean   @default(false) @map("extra_legroom")
+  priceModifier Decimal? @map("price_modifier") @db.Decimal(10, 2)
+
+  flight  Flight?  @relation(fields: [flightId], references: [id], onDelete: Cascade)
+  aircraft Aircraft @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+
+  @@map("seat_layouts")
+}
+
+model FlightInventory {
+  id                    String   @id @default(cuid())
+  flightId              String   @map("flight_id")
+  date                  DateTime @db.Date
+  availableEconomy      Int      @map("available_economy")
+  availableBusiness     Int      @map("available_business")
+  availableFirstClass   Int      @default(0) @map("available_first_class")
+
+  flight Flight @relation(fields: [flightId], references: [id], onDelete: Cascade)
+
+  @@unique([flightId, date])
+  @@map("flight_inventory")
+}
+
+model PricingRule {
+  id                String   @id @default(cuid())
+  flightId          String   @map("flight_id")
+  cabinClass        CabinClass @map("cabin_class")
+  baseFare          Decimal  @map("base_fare") @db.Decimal(10, 2)
+  taxes             Decimal  @map("taxes") @db.Decimal(10, 2)
+  dynamicMultiplier Decimal  @default(1) @map("dynamic_multiplier") @db.Decimal(5, 2)
+
+  flight Flight @relation(fields: [flightId], references: [id], onDelete: Cascade)
+
+  @@unique([flightId, cabinClass])
+  @@map("pricing_rules")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  userId      String        @map("user_id")
+  pnr         String        @unique
+  status      BookingStatus @default(PENDING)
+  totalAmount Decimal       @map("total_amount") @db.Decimal(12, 2)
+  currency    String        @default("USD")
+  tripType    TripType      @map("trip_type")
+  promoCode   String?       @map("promo_code")
+  discountAmount Decimal?   @map("discount_amount") @db.Decimal(10, 2)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passengers BookingPassenger[]
+  segments  BookingSegment[]
+  payments  Payment[]
+
+  @@map("bookings")
+}
+
+model BookingPassenger {
+  id              String   @id @default(cuid())
+  bookingId       String   @map("booking_id")
+  title           String
+  firstName       String   @map("first_name")
+  lastName        String   @map("last_name")
+  dateOfBirth     DateTime @map("date_of_birth")
+  gender          String
+  passportNumber  String?  @map("passport_number")
+  passportExpiry  DateTime? @map("passport_expiry")
+  nationality     String?
+  email           String
+  phone           String
+  seatNumber      String?  @map("seat_number")
+  mealPreference  String?  @map("meal_preference")
+  specialRequests String?  @map("special_requests")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("booking_passengers")
+}
+
+model BookingSegment {
+  id            String   @id @default(cuid())
+  bookingId     String   @map("booking_id")
+  flightId      String   @map("flight_id")
+  departureDate DateTime @map("departure_date") @db.Date
+  cabinClass    CabinClass @map("cabin_class")
+  price         Decimal  @map("price") @db.Decimal(10, 2)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  flight  Flight  @relation(fields: [flightId], references: [id], onDelete: Restrict)
+
+  @@map("booking_segments")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  bookingId     String        @map("booking_id")
+  amount        Decimal       @map("amount") @db.Decimal(12, 2)
+  currency      String        @default("USD")
+  paymentMethod PaymentMethod @map("payment_method")
+  status        PaymentStatus @default(PENDING)
+  stripePaymentId String?     @map("stripe_payment_id")
+  transactionId String?       @map("transaction_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model LoyaltyPoints {
+  id           String   @id @default(cuid())
+  userId       String   @unique @map("user_id")
+  pointsBalance Int    @default(0) @map("points_balance")
+  totalEarned  Int      @default(0) @map("total_earned")
+  totalRedeemed Int     @default(0) @map("total_redeemed")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_points")
+}
+
+model PromoCode {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  discountType String   @map("discount_type") // PERCENTAGE, FIXED
+  discountValue Decimal @map("discount_value") @db.Decimal(10, 2)
+  validFrom    DateTime @map("valid_from")
+  validUntil   DateTime @map("valid_until")
+  usageLimit   Int?     @map("usage_limit")
+  usedCount    Int      @default(0) @map("used_count")
+  minBookingAmount Decimal? @map("min_booking_amount") @db.Decimal(10, 2)
+
+  @@map("promo_codes")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  airlineId String   @map("airline_id")
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  airline Airline @relation(fields: [airlineId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model UserNotification {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  title      String
+  message    String
+  type       String   // BOOKING, FLIGHT_STATUS, PROMO, PRICE_ALERT, CHECKIN_REMINDER
+  read       Boolean  @default(false)
+  metadata   String?  // JSON: { pnr?, bookingId?, route? }
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_notifications")
+}
+
+model SearchHistory {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  origin         String
+  destination    String
+  departureDate  String   @map("departure_date")
+  returnDate     String?  @map("return_date")
+  tripType       String   @map("trip_type")
+  adults         Int      @default(1)
+  children       Int      @default(0)
+  infants        Int      @default(0)
+  cabinClass     String   @map("cabin_class")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("search_history")
+}
+
+model SavedRoute {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  origin          String
+  destination     String
+  priceAlert      Boolean  @default(false) @map("price_alert")
+  targetPrice     Decimal? @map("target_price") @db.Decimal(10, 2)
+  lowestPriceSeen Decimal? @map("lowest_price_seen") @db.Decimal(10, 2)
+  cabinClass      String?  @map("cabin_class")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_routes")
+}
+
+model LoyaltyTransaction {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  type         String
+  points       Int
+  balanceAfter Int      @map("balance_after")
+  description  String?
+  bookingId    String?  @map("booking_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_transactions")
+}
