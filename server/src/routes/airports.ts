@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler.js';
+import { prisma } from '../utils/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Get all airports (public endpoint)
 router.get('/', async (req, res, next) => {

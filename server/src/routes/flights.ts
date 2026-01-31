@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { searchFlightsSchema } from '../validators/flights.js';
 import { searchFlights } from '../services/flightSearch.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { prisma } from '../utils/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.get('/search', async (req, res, next) => {
   try {

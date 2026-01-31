@@ -1,12 +1,11 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { createBookingSchema } from '../validators/bookings.js';
 import { authenticate, requireRole, type AuthRequest } from '../middleware/auth.js';
 import { generatePNR } from '../utils/pnr.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { prisma } from '../utils/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.post('/', authenticate, async (req: AuthRequest, res, next) => {
   try {

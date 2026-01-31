@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema } from '../validators/auth.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken, getAccessExpirySeconds } from '../utils/jwt.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { authenticate, type AuthRequest } from '../middleware/auth.js';
+import { prisma } from '../utils/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.post('/register', async (req, res, next) => {
   try {

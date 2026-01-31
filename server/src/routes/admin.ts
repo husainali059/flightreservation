@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { authenticate, requireRole, type AuthRequest } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { prisma } from '../utils/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.use(authenticate);
 router.use(requireRole('ADMIN', 'AGENT'));

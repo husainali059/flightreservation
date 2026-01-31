@@ -1,11 +1,10 @@
 import { Router } from 'express';
 import Stripe from 'stripe';
-import { PrismaClient } from '@prisma/client';
 import { authenticate, type AuthRequest } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { prisma } from '../utils/prisma.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY)
   : null;

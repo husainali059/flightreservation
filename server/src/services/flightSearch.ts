@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import type { SearchFlightsInput } from '../validators/flights.js';
 import { Decimal } from '@prisma/client/runtime/library';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma.js';
 
 export async function searchFlights(params: SearchFlightsInput) {
   const {
