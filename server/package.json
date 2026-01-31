@@ -1,7 +1,11 @@
 {
-  "name": "server",
-  "version": "1.0.0",
+  "name": "flight-reservation",  "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "shared",
+    "server", 
+    "client"
+  ],
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
