@@ -154,11 +154,11 @@ router.get('/bookings', async (req: AuthRequest, res, next) => {
     res.json({
       success: true,
       data: {
-        items: items.map((b) => ({
+        items: items.map((b: any) => ({
           ...b,
           totalAmount: Number(b.totalAmount),
           discountAmount: b.discountAmount ? Number(b.discountAmount) : null,
-          payments: b.payments?.map((p) => ({ ...p, amount: Number(p.amount) })),
+          payments: b.payments?.map((p: any) => ({ ...p, amount: Number(p.amount) })),
         })),
         total,
         page,
@@ -190,7 +190,7 @@ router.get('/bookings/:pnr', async (req: AuthRequest, res, next) => {
         ...booking,
         totalAmount: Number(booking.totalAmount),
         discountAmount: booking.discountAmount ? Number(booking.discountAmount) : null,
-        payments: booking.payments?.map((p) => ({ ...p, amount: Number(p.amount) })),
+        payments: booking.payments?.map((p: any) => ({ ...p, amount: Number(p.amount) })),
       },
     });
   } catch (e) {
@@ -614,7 +614,7 @@ router.get('/promos', async (req: AuthRequest, res, next) => {
     const promos = await prisma.promoCode.findMany({ orderBy: { validFrom: 'desc' } });
     res.json({
       success: true,
-      data: promos.map((p) => ({
+      data: promos.map((p: any) => ({
         ...p,
         discountValue: Number(p.discountValue),
         minBookingAmount: p.minBookingAmount ? Number(p.minBookingAmount) : null,
