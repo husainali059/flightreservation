@@ -1,5 +1,4 @@
 # Build stage for monorepo
-# Force rebuild to clear cache - v2
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -32,6 +31,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=5000
 
+# Install OpenSSL required by Prisma
+RUN apk add --no-cache openssl
+
 # Copy package files
 COPY package*.json ./
 COPY server/package*.json ./server/
@@ -45,6 +47,9 @@ COPY --from=builder /app/server/dist ./server/dist
 
 # Copy built client
 COPY --from=builder /app/client/dist ./client/dist
+
+# Generate Prisma client in runtime image
+RUN cd /app/server && npx prisma generate
 
 EXPOSE 5000
 
