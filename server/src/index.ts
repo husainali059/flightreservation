@@ -46,13 +46,21 @@ app.use('/api/admin', adminRouter);
 // Serve client build in production (before errorHandler so SPA catch-all runs)
 if (process.env.NODE_ENV === 'production') {
   // In Docker, client dist is at /app/client/dist
-  // In development, it's at ../client/dist relative to compiled server
   const clientDir = process.env.CLIENT_DIR ?? path.join(__dirname, '..', '..', 'client', 'dist');
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    express.static(clientDir)(req, res, () => {
-      res.sendFile(path.join(clientDir, 'index.html'));
-    });
+  logger.info(`Serving static files from: ${clientDir}`);
+  
+  // Serve static files
+  app.use(express.static(clientDir, { 
+    maxAge: '1h',
+    etag: false 
+  }));
+  
+  // SPA catch-all - serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(clientDir, 'index.html'));
   });
 }
 
