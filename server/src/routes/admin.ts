@@ -49,13 +49,13 @@ router.get('/analytics', async (req: AuthRequest, res, next) => {
       }),
     ]);
 
-    const flightIds = popularRoutes.map((r) => r.flightId);
+    const flightIds = popularRoutes.map((r: any) => r.flightId);
     const flights = flightIds.length ? await prisma.flight.findMany({
       where: { id: { in: flightIds } },
       include: { origin: true, destination: true, airline: true },
     }) : [];
-    const routeMap = Object.fromEntries(flights.map((f) => [f.id, f]));
-    const popularRoutesWithDetails = popularRoutes.map((r) => ({
+    const routeMap = Object.fromEntries(flights.map((f: any) => [f.id, f]));
+    const popularRoutesWithDetails = popularRoutes.map((r: any) => ({
       flightId: r.flightId,
       count: r._count.id,
       origin: routeMap[r.flightId]?.origin?.code,
@@ -80,11 +80,11 @@ router.get('/analytics', async (req: AuthRequest, res, next) => {
       });
     }
 
-    const totalConfirmed = statusCounts.find((s) => s.status === 'CONFIRMED')?._count.id ?? 0;
-    const totalCancelled = statusCounts.find((s) => s.status === 'CANCELLED')?._count.id ?? 0;
-    const totalPending = statusCounts.find((s) => s.status === 'PENDING')?._count.id ?? 0;
-    const totalCheckedIn = statusCounts.find((s) => s.status === 'CHECKED_IN')?._count.id ?? 0;
-    const totalCompleted = statusCounts.find((s) => s.status === 'COMPLETED')?._count.id ?? 0;
+    const totalConfirmed = statusCounts.find((s: any) => s.status === 'CONFIRMED')?._count.id ?? 0;
+    const totalCancelled = statusCounts.find((s: any) => s.status === 'CANCELLED')?._count.id ?? 0;
+    const totalPending = statusCounts.find((s: any) => s.status === 'PENDING')?._count.id ?? 0;
+    const totalCheckedIn = statusCounts.find((s: any) => s.status === 'CHECKED_IN')?._count.id ?? 0;
+    const totalCompleted = statusCounts.find((s: any) => s.status === 'COMPLETED')?._count.id ?? 0;
     const allBookings = totalConfirmed + totalCancelled + totalPending + totalCheckedIn + totalCompleted;
     
     // Cancellation rate = cancelled bookings / all bookings * 100
@@ -106,9 +106,9 @@ router.get('/analytics', async (req: AuthRequest, res, next) => {
           pendingRefunds,
           cancellationRate,
         },
-        statusDistribution: statusCounts.map((s) => ({ status: s.status, count: s._count.id })),
-        paymentDistribution: paymentCounts.map((p) => ({ status: p.status, count: p._count.id })),
-        recentBookings: recentBookings.map((b) => ({
+        statusDistribution: statusCounts.map((s: any) => ({ status: s.status, count: s._count.id })),
+        paymentDistribution: paymentCounts.map((p: any) => ({ status: p.status, count: p._count.id })),
+        recentBookings: recentBookings.map((b: any) => ({
           ...b,
           totalAmount: Number(b.totalAmount),
           passengerName: b.passengers[0] ? `${b.passengers[0].firstName} ${b.passengers[0].lastName}` : '',

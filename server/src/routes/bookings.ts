@@ -125,7 +125,7 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
     });
     res.json({
       success: true,
-      data: bookings.map((b) => ({
+      data: bookings.map((b: any) => ({
         ...b,
         totalAmount: Number(b.totalAmount),
         discountAmount: b.discountAmount ? Number(b.discountAmount) : null,

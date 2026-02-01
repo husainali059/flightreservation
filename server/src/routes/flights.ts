@@ -60,7 +60,7 @@ router.get('/:id/seats', async (req, res, next) => {
     if (!flight) throw new AppError(404, 'Flight not found');
 
     // In a full impl we'd mark which seats are already booked for this date.
-    const seats = flight.seatLayouts.map((s) => ({
+    const seats = flight.seatLayouts.map((s: any) => ({
       id: s.id,
       seatNumber: s.seatNumber,
       cabinClass: s.cabinClass,
