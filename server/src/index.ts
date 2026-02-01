@@ -46,7 +46,8 @@ app.use('/api/admin', adminRouter);
 // Serve client build in production (before errorHandler so SPA catch-all runs)
 if (process.env.NODE_ENV === 'production') {
   // In Docker, client dist is at /app/client/dist
-  const clientDir = process.env.CLIENT_DIR ?? path.join(__dirname, '..', '..', 'client', 'dist');
+  // The CLIENT_DIR env var is set in Dockerfile
+  const clientDir = process.env.CLIENT_DIR || '/app/client/dist';
   logger.info(`Serving static files from: ${clientDir}`);
   
   // Serve static files

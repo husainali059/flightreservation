@@ -59,4 +59,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 # Start script - just start server (migrations already applied in Supabase)
-CMD ["sh", "-c", "cd /app/server && node dist/index.js"]
+CMD ["sh", "-c", "node /app/server/dist/index.js"]
