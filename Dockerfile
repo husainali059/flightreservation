@@ -37,9 +37,11 @@ COPY package*.json ./
 COPY server/package*.json ./server/
 COPY server/prisma ./server/prisma
 
+# Copy root node_modules from builder (contains all workspace deps)
+COPY --from=builder /app/node_modules ./node_modules
+
 # Copy built server code
 COPY --from=builder /app/server/dist ./server/dist
-COPY --from=builder /app/server/node_modules ./server/node_modules
 
 # Copy built client
 COPY --from=builder /app/client/dist ./client/dist
