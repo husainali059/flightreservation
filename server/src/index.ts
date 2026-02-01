@@ -45,7 +45,9 @@ app.use('/api/admin', adminRouter);
 
 // Serve client build in production (before errorHandler so SPA catch-all runs)
 if (process.env.NODE_ENV === 'production') {
-  const clientDir = path.join(__dirname, '..', 'client', 'dist');
+  // In Docker, client dist is at /app/client/dist
+  // In development, it's at ../client/dist relative to compiled server
+  const clientDir = process.env.CLIENT_DIR ?? path.join(__dirname, '..', '..', 'client', 'dist');
   app.use((req, res, next) => {
     if (req.path.startsWith('/api')) return next();
     express.static(clientDir)(req, res, () => {

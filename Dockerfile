@@ -30,6 +30,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=5000
+ENV CLIENT_DIR=/app/client/dist
 
 # Install OpenSSL required by Prisma
 RUN apk add --no-cache openssl
